@@ -3,43 +3,48 @@ import numpy as np
 import pandas as pd
 import os
 
-# Path dataset
-dataset_path = "dataset/train"
+DATASET_PATH = "dataset/train"
 
-# Menyimpan semua data
-data = []
+all_data = []
 
-# Loop semua folder class
-for label in os.listdir(dataset_path):
+for label in os.listdir(DATASET_PATH):
 
-    class_path = os.path.join(dataset_path, label)
+    class_path = os.path.join(
+        DATASET_PATH,
+        label
+    )
 
-    # Skip kalau bukan folder
     if not os.path.isdir(class_path):
         continue
 
-    # Loop semua gambar
     for filename in os.listdir(class_path):
 
-        image_path = os.path.join(class_path, filename)
+        image_path = os.path.join(
+            class_path,
+            filename
+        )
 
-        # Membaca gambar
         image = cv2.imread(image_path)
 
-        # Skip kalau gambar gagal dibaca
         if image is None:
             continue
 
-        # Resize
-        resize_image = cv2.resize(image, (32, 32))
+        resize_image = cv2.resize(
+            image,
+            (64,64)
+        )
 
-        # Grayscale
         gray = cv2.cvtColor(
             resize_image,
             cv2.COLOR_BGR2GRAY
         )
 
-        # Threshold
+        gray = cv2.GaussianBlur(
+            gray,
+            (5,5),
+            0
+        )
+
         _, threshold = cv2.threshold(
             gray,
             120,
@@ -47,8 +52,10 @@ for label in os.listdir(dataset_path):
             cv2.THRESH_BINARY_INV
         )
 
-        # Morphology Closing
-        kernel = np.ones((3,3), np.uint8)
+        kernel = np.ones(
+            (3,3),
+            np.uint8
+        )
 
         closing = cv2.morphologyEx(
             threshold,
@@ -56,68 +63,82 @@ for label in os.listdir(dataset_path):
             kernel
         )
 
-        # Cari contour
         contours, _ = cv2.findContours(
             closing,
             cv2.RETR_EXTERNAL,
             cv2.CHAIN_APPROX_SIMPLE
         )
 
-        # Skip kalau contour kosong
         if len(contours) == 0:
             continue
 
-        # Contour terbesar
         largest_contour = max(
             contours,
             key=cv2.contourArea
         )
 
-        # Area
         area = cv2.contourArea(
             largest_contour
         )
 
-        # Perimeter
         perimeter = cv2.arcLength(
             largest_contour,
             True
         )
 
-        # Hindari divide by zero
         if perimeter == 0:
             continue
 
-        # Circularity
         circularity = (
             4 * np.pi * area
         ) / (perimeter ** 2)
 
-        # Simpan data
-        data.append([
+        x, y, w, h = cv2.boundingRect(
+            largest_contour
+        )
+
+        aspect_ratio = float(w) / h
+
+        hull = cv2.convexHull(
+            largest_contour
+        )
+
+        hull_area = cv2.contourArea(
+            hull
+        )
+
+        solidity = float(area) / hull_area
+
+        all_data.append([
             area,
             perimeter,
             circularity,
+            aspect_ratio,
+            solidity,
             label
         ])
 
-# Buat dataframe
-df = pd.DataFrame(
-    data,
-    columns=[
-        "area",
-        "perimeter",
-        "circularity",
-        "label"
-    ]
+columns = [
+    "area",
+    "perimeter",
+    "circularity",
+    "aspect_ratio",
+    "solidity",
+    "label"
+]
+
+feature_df = pd.DataFrame(
+    all_data,
+    columns=columns
 )
 
-# Simpan CSV
-df.to_csv(
+feature_df.to_csv(
     "backend/training/coffee_features.csv",
     index=False
 )
 
-print(df.head())
+print(feature_df.head())
 
-print("\nFeature extraction selesai!")
+print(
+    "\nFeature extraction selesai!"
+)

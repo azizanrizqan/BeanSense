@@ -1,29 +1,40 @@
 import pandas as pd
-
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
-
 import pickle
 
-# Membaca CSV
-df = pd.read_csv(
+from sklearn.model_selection import train_test_split
+from sklearn.preprocessing import StandardScaler
+from sklearn.neighbors import KNeighborsClassifier
+from sklearn.metrics import (
+    accuracy_score,
+    classification_report,
+    confusion_matrix
+)
+
+# Load CSV
+feature_df = pd.read_csv(
     "backend/training/coffee_features.csv"
 )
 
 # Feature
-X = df[
+X = feature_df[
     [
         "area",
         "perimeter",
-        "circularity"
+        "circularity",
+        "aspect_ratio",
+        "solidity"
     ]
 ]
 
 # Label
-y = df["label"]
+y = feature_df["label"]
 
-# Split train dan test
+# Scaling
+scaler = StandardScaler()
+
+X = scaler.fit_transform(X)
+
+# Split train test
 X_train, X_test, y_train, y_test = train_test_split(
     X,
     y,
@@ -31,32 +42,78 @@ X_train, X_test, y_train, y_test = train_test_split(
     random_state=42
 )
 
-# Buat model KNN
+# Model KNN
 model = KNeighborsClassifier(
     n_neighbors=3
 )
 
 # Training
-model.fit(X_train, y_train)
+model.fit(
+    X_train,
+    y_train
+)
 
-# Prediksi
+# Predict
 y_pred = model.predict(X_test)
 
-# Hitung akurasi
+# Accuracy
 accuracy = accuracy_score(
     y_test,
     y_pred
 )
 
-# Print hasil
-print("Accuracy :", accuracy * 100, "%")
+print(
+    "\nAccuracy :",
+    accuracy * 100,
+    "%"
+)
 
-# Simpan model
+# Classification report
+print(
+    "\nClassification Report:\n"
+)
+
+print(
+    classification_report(
+        y_test,
+        y_pred
+    )
+)
+
+# Confusion Matrix
+print(
+    "\nConfusion Matrix:\n"
+)
+
+print(
+    confusion_matrix(
+        y_test,
+        y_pred
+    )
+)
+
+# Save model
 with open(
     "backend/model/knn_model.pkl",
     "wb"
 ) as file:
 
-    pickle.dump(model, file)
+    pickle.dump(
+        model,
+        file
+    )
 
-print("\nModel berhasil disimpan!")
+# Save scaler
+with open(
+    "backend/model/scaler.pkl",
+    "wb"
+) as file:
+
+    pickle.dump(
+        scaler,
+        file
+    )
+
+print(
+    "\nModel berhasil disimpan!"
+)
