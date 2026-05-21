@@ -1,9 +1,5 @@
-from flask import (
-    Flask,
-    render_template,
-    request,
-    url_for
-)
+from flask import Flask, request
+from flask_cors import CORS
 
 import cv2
 import numpy as np
@@ -11,37 +7,67 @@ import pickle
 import pandas as pd
 import os
 
+# =========================
+# FLASK SETUP
+# =========================
+
 app = Flask(__name__)
 
-# Folder upload
-UPLOAD_FOLDER = "backend/static"
+CORS(app)
+
+# =========================
+# UPLOAD FOLDER
+# =========================
+
+UPLOAD_FOLDER = "static"
 
 app.config[
     "UPLOAD_FOLDER"
 ] = UPLOAD_FOLDER
 
-# Load model
+# Buat folder static otomatis
+os.makedirs(
+    UPLOAD_FOLDER,
+    exist_ok=True
+)
+
+# =========================
+# LOAD MODEL
+# =========================
+
 with open(
-    "backend/model/knn_model.pkl",
+    "model/knn_model.pkl",
     "rb"
 ) as file:
 
     model = pickle.load(file)
 
-# Load scaler
+# =========================
+# LOAD SCALER
+# =========================
+
 with open(
-    "backend/model/scaler.pkl",
+    "model/scaler.pkl",
     "rb"
 ) as file:
 
     scaler = pickle.load(file)
 
+# =========================
+# HOME ROUTE
+# =========================
+
 @app.route("/")
 def home():
 
-    return render_template(
-        "index.html"
-    )
+    return {
+        "message":
+        "BeanSense API Running"
+    }
+
+# =========================
+# PREDICT ROUTE
+# =========================
 
 @app.route(
     "/predict",
@@ -50,13 +76,23 @@ def home():
 
 def predict():
 
-    # Cek upload
+    # =========================
+    # CHECK FILE
+    # =========================
+
     if "image" not in request.files:
-        return "No image uploaded"
+
+        return {
+            "error":
+            "No image uploaded"
+        }
 
     file = request.files["image"]
 
-    # Simpan gambar
+    # =========================
+    # SAVE IMAGE
+    # =========================
+
     filepath = os.path.join(
         app.config["UPLOAD_FOLDER"],
         file.filename
@@ -64,32 +100,51 @@ def predict():
 
     file.save(filepath)
 
-    # Baca gambar
+    # =========================
+    # READ IMAGE
+    # =========================
+
     image = cv2.imread(filepath)
 
     if image is None:
-        return "Image gagal dibaca"
 
-    # Resize
+        return {
+            "error":
+            "Image gagal dibaca"
+        }
+
+    # =========================
+    # RESIZE
+    # =========================
+
     resize_image = cv2.resize(
         image,
         (64,64)
     )
 
-    # Grayscale
+    # =========================
+    # GRAYSCALE
+    # =========================
+
     gray = cv2.cvtColor(
         resize_image,
         cv2.COLOR_BGR2GRAY
     )
 
-    # Blur
+    # =========================
+    # GAUSSIAN BLUR
+    # =========================
+
     gray = cv2.GaussianBlur(
         gray,
         (5,5),
         0
     )
 
-    # Threshold
+    # =========================
+    # THRESHOLD
+    # =========================
+
     _, threshold = cv2.threshold(
         gray,
         120,
@@ -97,7 +152,10 @@ def predict():
         cv2.THRESH_BINARY_INV
     )
 
-    # Morphology
+    # =========================
+    # MORPHOLOGY
+    # =========================
+
     kernel = np.ones(
         (3,3),
         np.uint8
@@ -109,18 +167,31 @@ def predict():
         kernel
     )
 
-    # Contour
+    # =========================
+    # FIND CONTOUR
+    # =========================
+
     contours, _ = cv2.findContours(
         closing,
         cv2.RETR_EXTERNAL,
         cv2.CHAIN_APPROX_SIMPLE
     )
 
-    # Jika contour tidak ditemukan
-    if len(contours) == 0:
-        return "Contour tidak ditemukan"
+    # =========================
+    # CHECK CONTOUR
+    # =========================
 
-    # Ambil contour terbesar
+    if len(contours) == 0:
+
+        return {
+            "error":
+            "Contour tidak ditemukan"
+        }
+
+    # =========================
+    # LARGEST CONTOUR
+    # =========================
+
     largest_contour = max(
         contours,
         key=cv2.contourArea
@@ -140,7 +211,11 @@ def predict():
     )
 
     if perimeter == 0:
-        return "Perimeter error"
+
+        return {
+            "error":
+            "Perimeter error"
+        }
 
     circularity = (
         4 * np.pi * area
@@ -164,7 +239,10 @@ def predict():
 
     solidity = float(area) / hull_area
 
-    # DataFrame feature
+    # =========================
+    # DATAFRAME FEATURE
+    # =========================
+
     features = pd.DataFrame([[
         area,
         perimeter,
@@ -179,17 +257,26 @@ def predict():
         "solidity"
     ])
 
-    # Scaling
+    # =========================
+    # SCALING
+    # =========================
+
     features = scaler.transform(
         features
     )
 
-    # Predict
+    # =========================
+    # PREDICT
+    # =========================
+
     prediction = model.predict(
         features
     )
 
-    # Confidence
+    # =========================
+    # CONFIDENCE
+    # =========================
+
     probabilities = model.predict_proba(
         features
     )
@@ -198,15 +285,25 @@ def predict():
         probabilities[0]
     ) * 100
 
-    # Render hasil
-    return render_template(
-        "index.html",
-        prediction=prediction[0],
-        confidence=round(confidence,2),
-        image=file.filename
-    )
+    # =========================
+    # RETURN JSON
+    # =========================
 
-# Run Flask
+    return {
+        "prediction":
+        prediction[0],
+
+        "confidence":
+        round(confidence,2),
+
+        "image":
+        file.filename
+    }
+
+# =========================
+# RUN FLASK
+# =========================
+
 if __name__ == "__main__":
 
     app.run(
