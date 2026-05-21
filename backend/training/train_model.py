@@ -1,74 +1,142 @@
 import pandas as pd
 import pickle
 
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import (
-    accuracy_score,
-    classification_report,
-    confusion_matrix
+from sklearn.model_selection import (
+    train_test_split
 )
 
-# Load CSV
-feature_df = pd.read_csv(
+from sklearn.preprocessing import (
+    StandardScaler
+)
+
+from sklearn.neighbors import (
+    KNeighborsClassifier
+)
+
+from sklearn.metrics import (
+
+    accuracy_score,
+
+    classification_report,
+
+    confusion_matrix
+
+)
+
+# =========================
+# LOAD DATASET
+# =========================
+
+df = pd.read_csv(
     "backend/training/coffee_features.csv"
 )
 
-# Feature
-X = feature_df[
+# =========================
+# FEATURE
+# =========================
+
+X = df[
     [
+
         "area",
+
         "perimeter",
+
         "circularity",
+
         "aspect_ratio",
-        "solidity"
+
+        "solidity",
+
+        "equivalent_diameter",
+
+        "extent",
+
+        "convex_area"
+
     ]
 ]
 
-# Label
-y = feature_df["label"]
+# =========================
+# LABEL
+# =========================
 
-# Scaling
-scaler = StandardScaler()
+y = df["label"]
 
-X = scaler.fit_transform(X)
+# =========================
+# SPLIT
+# =========================
 
-# Split train test
 X_train, X_test, y_train, y_test = train_test_split(
+
     X,
+
     y,
+
     test_size=0.2,
-    random_state=42
+
+    random_state=42,
+
+    stratify=y
+
 )
 
-# Model KNN
+# =========================
+# SCALING
+# =========================
+
+scaler = StandardScaler()
+
+X_train = scaler.fit_transform(
+    X_train
+)
+
+X_test = scaler.transform(
+    X_test
+)
+
+# =========================
+# MODEL
+# =========================
+
 model = KNeighborsClassifier(
     n_neighbors=3
 )
 
-# Training
+# =========================
+# TRAINING
+# =========================
+
 model.fit(
     X_train,
     y_train
 )
 
-# Predict
-y_pred = model.predict(X_test)
+# =========================
+# PREDICT
+# =========================
 
-# Accuracy
+y_pred = model.predict(
+    X_test
+)
+
+# =========================
+# ACCURACY
+# =========================
+
 accuracy = accuracy_score(
     y_test,
     y_pred
 )
 
 print(
-    "\nAccuracy :",
-    accuracy * 100,
-    "%"
+    f"\nAccuracy : {accuracy*100:.2f}%"
 )
 
-# Classification report
+# =========================
+# REPORT
+# =========================
+
 print(
     "\nClassification Report:\n"
 )
@@ -80,7 +148,6 @@ print(
     )
 )
 
-# Confusion Matrix
 print(
     "\nConfusion Matrix:\n"
 )
@@ -92,7 +159,10 @@ print(
     )
 )
 
-# Save model
+# =========================
+# SAVE MODEL
+# =========================
+
 with open(
     "backend/model/knn_model.pkl",
     "wb"
@@ -103,7 +173,10 @@ with open(
         file
     )
 
-# Save scaler
+# =========================
+# SAVE SCALER
+# =========================
+
 with open(
     "backend/model/scaler.pkl",
     "wb"

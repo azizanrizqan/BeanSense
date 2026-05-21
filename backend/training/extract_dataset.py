@@ -3,9 +3,115 @@ import numpy as np
 import pandas as pd
 import os
 
+# =========================
+# DATASET PATH
+# =========================
+
 DATASET_PATH = "dataset/train"
 
+# =========================
+# ALL DATA
+# =========================
+
 all_data = []
+
+# =========================
+# PREPROCESS FUNCTION
+# =========================
+
+def preprocess_image(image):
+
+    image = cv2.resize(
+        image,
+        (256,256)
+    )
+
+    gray = cv2.cvtColor(
+        image,
+        cv2.COLOR_BGR2GRAY
+    )
+
+    gray = cv2.GaussianBlur(
+        gray,
+        (5,5),
+        0
+    )
+
+    threshold = cv2.adaptiveThreshold(
+
+        gray,
+
+        255,
+
+        cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+
+        cv2.THRESH_BINARY_INV,
+
+        11,
+
+        2
+
+    )
+
+    kernel = cv2.getStructuringElement(
+        cv2.MORPH_ELLIPSE,
+        (3,3)
+    )
+
+    opening = cv2.morphologyEx(
+
+        threshold,
+
+        cv2.MORPH_OPEN,
+
+        kernel
+
+    )
+
+    closing = cv2.morphologyEx(
+
+        opening,
+
+        cv2.MORPH_CLOSE,
+
+        kernel
+
+    )
+
+    contours, _ = cv2.findContours(
+
+        closing,
+
+        cv2.RETR_EXTERNAL,
+
+        cv2.CHAIN_APPROX_SIMPLE
+
+    )
+
+    contours = [
+
+        cnt
+
+        for cnt in contours
+
+        if cv2.contourArea(cnt) > 300
+
+    ]
+
+    if len(contours) == 0:
+
+        return None
+
+    largest_contour = max(
+        contours,
+        key=cv2.contourArea
+    )
+
+    return largest_contour
+
+# =========================
+# LOOP LABEL
+# =========================
 
 for label in os.listdir(DATASET_PATH):
 
@@ -29,60 +135,21 @@ for label in os.listdir(DATASET_PATH):
         if image is None:
             continue
 
-        resize_image = cv2.resize(
-            image,
-            (64,64)
-        )
+        contour = preprocess_image(image)
 
-        gray = cv2.cvtColor(
-            resize_image,
-            cv2.COLOR_BGR2GRAY
-        )
-
-        gray = cv2.GaussianBlur(
-            gray,
-            (5,5),
-            0
-        )
-
-        _, threshold = cv2.threshold(
-            gray,
-            120,
-            255,
-            cv2.THRESH_BINARY_INV
-        )
-
-        kernel = np.ones(
-            (3,3),
-            np.uint8
-        )
-
-        closing = cv2.morphologyEx(
-            threshold,
-            cv2.MORPH_CLOSE,
-            kernel
-        )
-
-        contours, _ = cv2.findContours(
-            closing,
-            cv2.RETR_EXTERNAL,
-            cv2.CHAIN_APPROX_SIMPLE
-        )
-
-        if len(contours) == 0:
+        if contour is None:
             continue
 
-        largest_contour = max(
-            contours,
-            key=cv2.contourArea
-        )
+        # =========================
+        # FEATURE EXTRACTION
+        # =========================
 
         area = cv2.contourArea(
-            largest_contour
+            contour
         )
 
         perimeter = cv2.arcLength(
-            largest_contour,
+            contour,
             True
         )
 
@@ -94,50 +161,99 @@ for label in os.listdir(DATASET_PATH):
         ) / (perimeter ** 2)
 
         x, y, w, h = cv2.boundingRect(
-            largest_contour
+            contour
         )
 
         aspect_ratio = float(w) / h
 
         hull = cv2.convexHull(
-            largest_contour
+            contour
         )
 
         hull_area = cv2.contourArea(
             hull
         )
 
+        if hull_area == 0:
+            continue
+
         solidity = float(area) / hull_area
 
+        equivalent_diameter = np.sqrt(
+            4 * area / np.pi
+        )
+
+        extent = float(area) / (w*h)
+
+        convex_area = hull_area
+
+        # =========================
+        # SAVE DATA
+        # =========================
+
         all_data.append([
+
             area,
+
             perimeter,
+
             circularity,
+
             aspect_ratio,
+
             solidity,
+
+            equivalent_diameter,
+
+            extent,
+
+            convex_area,
+
             label
+
         ])
 
+# =========================
+# DATAFRAME
+# =========================
+
 columns = [
+
     "area",
+
     "perimeter",
+
     "circularity",
+
     "aspect_ratio",
+
     "solidity",
+
+    "equivalent_diameter",
+
+    "extent",
+
+    "convex_area",
+
     "label"
+
 ]
 
-feature_df = pd.DataFrame(
+df = pd.DataFrame(
     all_data,
     columns=columns
 )
 
-feature_df.to_csv(
+# =========================
+# SAVE CSV
+# =========================
+
+df.to_csv(
     "backend/training/coffee_features.csv",
     index=False
 )
 
-print(feature_df.head())
+print(df.head())
 
 print(
     "\nFeature extraction selesai!"
