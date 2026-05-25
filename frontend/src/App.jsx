@@ -42,7 +42,7 @@ function App() {
     }
 
     const formData = new FormData();
-    formData.append("image", image);
+    formData.append("file", image);
 
     try {
 

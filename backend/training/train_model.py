@@ -35,27 +35,9 @@ df = pd.read_csv(
 # FEATURE
 # =========================
 
-X = df[
-    [
-
-        "area",
-
-        "perimeter",
-
-        "circularity",
-
-        "aspect_ratio",
-
-        "solidity",
-
-        "equivalent_diameter",
-
-        "extent",
-
-        "convex_area"
-
-    ]
-]
+X = df.drop(
+    columns=["label"]
+)
 
 # =========================
 # LABEL
@@ -147,6 +129,10 @@ print(
         y_pred
     )
 )
+
+# =========================
+# CONFUSION MATRIX
+# =========================
 
 print(
     "\nConfusion Matrix:\n"
