@@ -1,62 +1,192 @@
 import pandas as pd
-
-from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.metrics import accuracy_score
-
 import pickle
 
-# Membaca CSV
+from sklearn.model_selection import (
+    train_test_split
+)
+
+from sklearn.preprocessing import (
+    StandardScaler
+)
+
+from sklearn.neighbors import (
+    KNeighborsClassifier
+)
+
+from sklearn.metrics import (
+
+    accuracy_score,
+
+    classification_report,
+
+    confusion_matrix
+
+)
+
+# =========================
+# LOAD DATASET
+# =========================
+
 df = pd.read_csv(
     "backend/training/coffee_features.csv"
 )
 
-# Feature
+# =========================
+# FEATURE
+# =========================
+
 X = df[
     [
+
         "area",
+
         "perimeter",
-        "circularity"
+
+        "circularity",
+
+        "aspect_ratio",
+
+        "solidity",
+
+        "equivalent_diameter",
+
+        "extent",
+
+        "convex_area"
+
     ]
 ]
 
-# Label
+# =========================
+# LABEL
+# =========================
+
 y = df["label"]
 
-# Split train dan test
+# =========================
+# SPLIT
+# =========================
+
 X_train, X_test, y_train, y_test = train_test_split(
+
     X,
+
     y,
+
     test_size=0.2,
-    random_state=42
+
+    random_state=42,
+
+    stratify=y
+
 )
 
-# Buat model KNN
+# =========================
+# SCALING
+# =========================
+
+scaler = StandardScaler()
+
+X_train = scaler.fit_transform(
+    X_train
+)
+
+X_test = scaler.transform(
+    X_test
+)
+
+# =========================
+# MODEL
+# =========================
+
 model = KNeighborsClassifier(
     n_neighbors=3
 )
 
-# Training
-model.fit(X_train, y_train)
+# =========================
+# TRAINING
+# =========================
 
-# Prediksi
-y_pred = model.predict(X_test)
+model.fit(
+    X_train,
+    y_train
+)
 
-# Hitung akurasi
+# =========================
+# PREDICT
+# =========================
+
+y_pred = model.predict(
+    X_test
+)
+
+# =========================
+# ACCURACY
+# =========================
+
 accuracy = accuracy_score(
     y_test,
     y_pred
 )
 
-# Print hasil
-print("Accuracy :", accuracy * 100, "%")
+print(
+    f"\nAccuracy : {accuracy*100:.2f}%"
+)
 
-# Simpan model
+# =========================
+# REPORT
+# =========================
+
+print(
+    "\nClassification Report:\n"
+)
+
+print(
+    classification_report(
+        y_test,
+        y_pred
+    )
+)
+
+print(
+    "\nConfusion Matrix:\n"
+)
+
+print(
+    confusion_matrix(
+        y_test,
+        y_pred
+    )
+)
+
+# =========================
+# SAVE MODEL
+# =========================
+
 with open(
     "backend/model/knn_model.pkl",
     "wb"
 ) as file:
 
-    pickle.dump(model, file)
+    pickle.dump(
+        model,
+        file
+    )
 
-print("\nModel berhasil disimpan!")
+# =========================
+# SAVE SCALER
+# =========================
+
+with open(
+    "backend/model/scaler.pkl",
+    "wb"
+) as file:
+
+    pickle.dump(
+        scaler,
+        file
+    )
+
+print(
+    "\nModel berhasil disimpan!"
+)

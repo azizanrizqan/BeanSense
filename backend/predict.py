@@ -11,19 +11,36 @@ with open(
 
     model = pickle.load(file)
 
-# Path gambar baru
-image_path = "dataset/test/arabika/arabika1test.jpg"
+# Load scaler
+with open(
+    "backend/model/scaler.pkl",
+    "rb"
+) as file:
 
-# Membaca gambar
+    scaler = pickle.load(file)
+
+# Path image
+image_path = "dataset/test/arabika/sample.jpg"
+
+# Read image
 image = cv2.imread(image_path)
 
-# Resize
-resize_image = cv2.resize(image, (32, 32))
+resize_image = cv2.resize(
+    image,
+    (64,64)
+)
 
 # Grayscale
 gray = cv2.cvtColor(
     resize_image,
     cv2.COLOR_BGR2GRAY
+)
+
+# Blur
+gray = cv2.GaussianBlur(
+    gray,
+    (5,5),
+    0
 )
 
 # Threshold
@@ -35,7 +52,10 @@ _, threshold = cv2.threshold(
 )
 
 # Morphology
-kernel = np.ones((3,3), np.uint8)
+kernel = np.ones(
+    (3,3),
+    np.uint8
+)
 
 closing = cv2.morphologyEx(
     threshold,
@@ -43,7 +63,7 @@ closing = cv2.morphologyEx(
     kernel
 )
 
-# Cari contour
+# Contour
 contours, _ = cv2.findContours(
     closing,
     cv2.RETR_EXTERNAL,
@@ -69,25 +89,63 @@ circularity = (
     4 * np.pi * area
 ) / (perimeter ** 2)
 
-# Data prediksi
+x, y, w, h = cv2.boundingRect(
+    largest_contour
+)
+
+aspect_ratio = float(w) / h
+
+hull = cv2.convexHull(
+    largest_contour
+)
+
+hull_area = cv2.contourArea(
+    hull
+)
+
+solidity = float(area) / hull_area
+
+# Dataframe feature
 features = pd.DataFrame([[
     area,
     perimeter,
-    circularity
+    circularity,
+    aspect_ratio,
+    solidity
 ]], columns=[
     "area",
     "perimeter",
-    "circularity"
+    "circularity",
+    "aspect_ratio",
+    "solidity"
 ])
 
-# Prediksi
-prediction = model.predict(features)
+# Scaling
+features = scaler.transform(
+    features
+)
 
-# Print hasil
-print("\nHasil Prediksi :", prediction[0])
+# Predict
+prediction = model.predict(
+    features
+)
 
-# Tampilkan gambar
-cv2.imshow("Test Image", resize_image)
+# Confidence
+probabilities = model.predict_proba(
+    features
+)
 
-cv2.waitKey(0)
-cv2.destroyAllWindows()
+confidence = max(
+    probabilities[0]
+) * 100
+
+print(
+    "\nHasil Prediksi :",
+    prediction[0]
+)
+
+print(
+    "Confidence :",
+    round(confidence,2),
+    "%"
+)

@@ -1,9 +1,11 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 
 <head>
-    <meta charset="UTF-8">
-    <title>BeanSense AI</title>
+
+    <title>
+        BeanSense AI
+    </title>
 
     <style>
 
@@ -15,39 +17,59 @@
         }
 
         .container{
+            width: 450px;
             background: white;
-            width: 400px;
             margin: auto;
             padding: 30px;
-            border-radius: 10px;
-            box-shadow: 0px 0px 10px rgba(0,0,0,0.2);
+            border-radius: 15px;
+            box-shadow: 0px 0px 15px rgba(0,0,0,0.2);
         }
 
         h1{
-            color: #5c4033;
+            color: brown;
         }
 
         button{
             padding: 10px 20px;
-            background: #5c4033;
+            background: brown;
             color: white;
             border: none;
             border-radius: 5px;
+            cursor: pointer;
+        }
+
+        button:hover{
+            background: #5c1d1d;
         }
 
         img{
-            width: 200px;
+            width: 250px;
             margin-top: 20px;
+            border-radius: 10px;
+        }
+
+        .result{
+            margin-top: 20px;
+            padding: 15px;
+            background: #f7f7f7;
+            border-radius: 10px;
         }
 
     </style>
+
 </head>
 
 <body>
 
     <div class="container">
 
-        <h1>☕ BeanSense AI</h1>
+        <h1>
+            ☕ BeanSense AI
+        </h1>
+
+        <p>
+            Coffee Bean Classification
+        </p>
 
         <form
             action="/predict"
@@ -71,17 +93,26 @@
 
         {% if prediction %}
 
-            <h2>
-                Hasil Prediksi:
-            </h2>
+            <div class="result">
 
-            <h1>
-                {{ prediction }}
-            </h1>
+                <h2>
+                    Hasil Prediksi
+                </h2>
 
-            <img
-                src="{{ url_for('static', filename='../uploads/' + image) }}"
-            >
+                <h1>
+                    {{ prediction }}
+                </h1>
+
+                <h3>
+                    Confidence :
+                    {{ confidence }}%
+                </h3>
+
+                <img
+                    src="{{ url_for('static', filename=image) }}"
+                >
+
+            </div>
 
         {% endif %}
 

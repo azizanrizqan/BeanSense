@@ -1,30 +1,25 @@
 import cv2
 
-# Path gambar
 image_path = "dataset/train/arabika/coffee1.jpg"
 
-# Membaca gambar
 image = cv2.imread(image_path)
 
-# Resize 32x32
-resize_image = cv2.resize(image, (32, 32))
+resize_image = cv2.resize(image, (64, 64))
 
-# Convert grayscale
-gray = cv2.cvtColor(resize_image, cv2.COLOR_BGR2GRAY)
-
-# Thresholding
-threshold = cv2.adaptiveThreshold(
-    gray,
-    255,
-    cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
-    cv2.THRESH_BINARY_INV,
-    11,
-    2
+gray = cv2.cvtColor(
+    resize_image,
+    cv2.COLOR_BGR2GRAY
 )
 
-# Tampilkan hasil
-cv2.imshow("Original", resize_image)
-cv2.imshow("Grayscale", gray)
+gray = cv2.GaussianBlur(gray, (5,5), 0)
+
+_, threshold = cv2.threshold(
+    gray,
+    120,
+    255,
+    cv2.THRESH_BINARY_INV
+)
+
 cv2.imshow("Threshold", threshold)
 
 cv2.waitKey(0)
