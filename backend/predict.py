@@ -1,9 +1,41 @@
+import sys
+import os
+
+# =========================
+# ADD BACKEND PATH
+# =========================
+
+sys.path.append(
+
+    os.path.abspath(
+
+        os.path.join(
+
+            os.path.dirname(__file__)
+
+        )
+
+    )
+
+)
+
+# =========================
+# IMPORT
+# =========================
+
 import cv2
 import numpy as np
 import pickle
 import pandas as pd
 
-# Load model
+from feature_extraction.shape_features import (
+    extract_features
+)
+
+# =========================
+# LOAD MODEL
+# =========================
+
 with open(
     "backend/model/knn_model.pkl",
     "rb"
@@ -11,7 +43,10 @@ with open(
 
     model = pickle.load(file)
 
-# Load scaler
+# =========================
+# LOAD SCALER
+# =========================
+
 with open(
     "backend/model/scaler.pkl",
     "rb"
@@ -19,118 +54,210 @@ with open(
 
     scaler = pickle.load(file)
 
-# Path image
-image_path = "dataset/test/arabika/sample.jpg"
+# =========================
+# IMAGE PATH
+# =========================
 
-# Read image
+image_path = r"dataset/test/arabika/arabika1test.jpg"
+
+# =========================
+# READ IMAGE
+# =========================
+
 image = cv2.imread(image_path)
+
+if image is None:
+
+    print("Gambar tidak ditemukan!")
+
+    exit()
+
+# =========================
+# RESIZE
+# =========================
 
 resize_image = cv2.resize(
     image,
-    (64,64)
+    (256,256)
 )
 
-# Grayscale
+# =========================
+# GRAYSCALE
+# =========================
+
 gray = cv2.cvtColor(
     resize_image,
     cv2.COLOR_BGR2GRAY
 )
 
-# Blur
+# =========================
+# BLUR
+# =========================
+
 gray = cv2.GaussianBlur(
     gray,
     (5,5),
     0
 )
 
-# Threshold
-_, threshold = cv2.threshold(
+# =========================
+# THRESHOLD
+# =========================
+
+threshold = cv2.adaptiveThreshold(
+
     gray,
-    120,
+
     255,
-    cv2.THRESH_BINARY_INV
+
+    cv2.ADAPTIVE_THRESH_GAUSSIAN_C,
+
+    cv2.THRESH_BINARY_INV,
+
+    11,
+
+    2
+
 )
 
-# Morphology
-kernel = np.ones(
-    (3,3),
-    np.uint8
+# =========================
+# MORPHOLOGY
+# =========================
+
+kernel = cv2.getStructuringElement(
+    cv2.MORPH_ELLIPSE,
+    (3,3)
+)
+
+opening = cv2.morphologyEx(
+
+    threshold,
+
+    cv2.MORPH_OPEN,
+
+    kernel
+
 )
 
 closing = cv2.morphologyEx(
-    threshold,
+
+    opening,
+
     cv2.MORPH_CLOSE,
+
     kernel
+
 )
 
-# Contour
+# =========================
+# FIND CONTOUR
+# =========================
+
 contours, _ = cv2.findContours(
+
     closing,
+
     cv2.RETR_EXTERNAL,
+
     cv2.CHAIN_APPROX_SIMPLE
+
 )
+
+# Filter contour kecil
+contours = [
+
+    cnt
+
+    for cnt in contours
+
+    if cv2.contourArea(cnt) > 300
+
+]
+
+if len(contours) == 0:
+
+    print("Contour tidak ditemukan!")
+
+    exit()
+
+# =========================
+# LARGEST CONTOUR
+# =========================
 
 largest_contour = max(
+
     contours,
+
     key=cv2.contourArea
+
 )
 
-# Feature extraction
-area = cv2.contourArea(
+# =========================
+# FEATURE EXTRACTION
+# =========================
+
+feature_values = extract_features(
     largest_contour
 )
 
-perimeter = cv2.arcLength(
-    largest_contour,
-    True
-)
+# =========================
+# DATAFRAME
+# =========================
 
-circularity = (
-    4 * np.pi * area
-) / (perimeter ** 2)
+features = pd.DataFrame([
 
-x, y, w, h = cv2.boundingRect(
-    largest_contour
-)
+    feature_values
 
-aspect_ratio = float(w) / h
+], columns=[
 
-hull = cv2.convexHull(
-    largest_contour
-)
-
-hull_area = cv2.contourArea(
-    hull
-)
-
-solidity = float(area) / hull_area
-
-# Dataframe feature
-features = pd.DataFrame([[
-    area,
-    perimeter,
-    circularity,
-    aspect_ratio,
-    solidity
-]], columns=[
     "area",
+
     "perimeter",
+
     "circularity",
+
     "aspect_ratio",
-    "solidity"
+
+    "solidity",
+
+    "equivalent_diameter",
+
+    "extent",
+
+    "convex_area",
+
+    "rectangularity",
+
+    "compactness",
+
+    "eccentricity",
+
+    "hu_moment_1",
+
+    "hu_moment_2"
+
 ])
 
-# Scaling
+# =========================
+# SCALING
+# =========================
+
 features = scaler.transform(
     features
 )
 
-# Predict
+# =========================
+# PREDICT
+# =========================
+
 prediction = model.predict(
     features
 )
 
-# Confidence
+# =========================
+# CONFIDENCE
+# =========================
+
 probabilities = model.predict_proba(
     features
 )
@@ -138,6 +265,10 @@ probabilities = model.predict_proba(
 confidence = max(
     probabilities[0]
 ) * 100
+
+# =========================
+# RESULT
+# =========================
 
 print(
     "\nHasil Prediksi :",

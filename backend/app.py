@@ -1,34 +1,48 @@
-from flask import Flask, request
-from flask_cors import CORS
+import sys
+import os
+
+# =========================
+# ADD BACKEND PATH
+# =========================
+
+sys.path.append(
+
+    os.path.abspath(
+
+        os.path.dirname(__file__)
+
+    )
+
+)
+
+# =========================
+# IMPORT
+# =========================
 
 import cv2
 import numpy as np
 import pickle
 import pandas as pd
-import os
+
+from flask import (
+    Flask,
+    request,
+    jsonify
+)
+
+from flask_cors import CORS
+
+from feature_extraction.shape_features import (
+    extract_features
+)
 
 # =========================
-# FLASK SETUP
+# FLASK
 # =========================
 
 app = Flask(__name__)
 
 CORS(app)
-
-# =========================
-# UPLOAD FOLDER
-# =========================
-
-UPLOAD_FOLDER = "static"
-
-app.config[
-    "UPLOAD_FOLDER"
-] = UPLOAD_FOLDER
-
-os.makedirs(
-    UPLOAD_FOLDER,
-    exist_ok=True
-)
 
 # =========================
 # LOAD MODEL
@@ -53,26 +67,132 @@ with open(
     scaler = pickle.load(file)
 
 # =========================
-# PREPROCESS FUNCTION
+# UPLOAD FOLDER
 # =========================
 
-def preprocess_image(image):
+UPLOAD_FOLDER = "/uploads"
 
-    image = cv2.resize(
-        image,
-        (256,256)
+os.makedirs(
+    UPLOAD_FOLDER,
+    exist_ok=True
+)
+
+# =========================
+# HOME
+# =========================
+
+@app.route("/")
+
+def home():
+
+    return jsonify({
+
+        "message": "BeanSense API Running"
+
+    })
+
+# =========================
+# PREDICT
+# =========================
+
+@app.route(
+    "/predict",
+    methods=["POST"]
+)
+
+def predict():
+
+    # =========================
+    # CHECK FILE
+    # =========================
+
+    if "file" not in request.files:
+
+        return jsonify({
+
+            "error": "File tidak ditemukan"
+
+        })
+
+    file = request.files["file"]
+
+    if file.filename == "":
+
+        return jsonify({
+
+            "error": "File kosong"
+
+        })
+
+    # =========================
+    # SAVE IMAGE
+    # =========================
+
+    filepath = os.path.join(
+
+        UPLOAD_FOLDER,
+
+        file.filename
+
     )
+
+    file.save(filepath)
+
+    # =========================
+    # READ IMAGE
+    # =========================
+
+    image = cv2.imread(filepath)
+
+    if image is None:
+
+        return jsonify({
+
+            "error": "Gagal membaca gambar"
+
+        })
+
+    # =========================
+    # RESIZE
+    # =========================
+
+    resize_image = cv2.resize(
+
+        image,
+
+        (256,256)
+
+    )
+
+    # =========================
+    # GRAYSCALE
+    # =========================
 
     gray = cv2.cvtColor(
-        image,
+
+        resize_image,
+
         cv2.COLOR_BGR2GRAY
+
     )
 
+    # =========================
+    # BLUR
+    # =========================
+
     gray = cv2.GaussianBlur(
+
         gray,
+
         (5,5),
+
         0
+
     )
+
+    # =========================
+    # THRESHOLD
+    # =========================
 
     threshold = cv2.adaptiveThreshold(
 
@@ -90,9 +210,16 @@ def preprocess_image(image):
 
     )
 
+    # =========================
+    # MORPHOLOGY
+    # =========================
+
     kernel = cv2.getStructuringElement(
+
         cv2.MORPH_ELLIPSE,
+
         (3,3)
+
     )
 
     opening = cv2.morphologyEx(
@@ -115,6 +242,10 @@ def preprocess_image(image):
 
     )
 
+    # =========================
+    # FIND CONTOUR
+    # =========================
+
     contours, _ = cv2.findContours(
 
         closing,
@@ -125,6 +256,7 @@ def preprocess_image(image):
 
     )
 
+    # Filter contour kecil
     contours = [
 
         cnt
@@ -135,141 +267,49 @@ def preprocess_image(image):
 
     ]
 
+    # =========================
+    # CHECK CONTOUR
+    # =========================
+
     if len(contours) == 0:
 
-        return None
+        return jsonify({
+
+            "error": "Contour tidak ditemukan"
+
+        })
+
+    # =========================
+    # LARGEST CONTOUR
+    # =========================
 
     largest_contour = max(
+
         contours,
+
         key=cv2.contourArea
-    )
-
-    return largest_contour
-
-# =========================
-# HOME
-# =========================
-
-@app.route("/")
-def home():
-
-    return {
-        "message":
-        "BeanSense API Running"
-    }
-
-# =========================
-# PREDICT
-# =========================
-
-@app.route(
-    "/predict",
-    methods=["POST"]
-)
-
-def predict():
-
-    if "image" not in request.files:
-
-        return {
-            "error":
-            "No image uploaded"
-        }
-
-    file = request.files["image"]
-
-    filepath = os.path.join(
-
-        app.config["UPLOAD_FOLDER"],
-
-        file.filename
 
     )
-
-    file.save(filepath)
-
-    image = cv2.imread(filepath)
-
-    if image is None:
-
-        return {
-            "error":
-            "Image gagal dibaca"
-        }
-
-    contour = preprocess_image(image)
-
-    if contour is None:
-
-        return {
-            "error":
-            "Contour tidak ditemukan"
-        }
 
     # =========================
     # FEATURE EXTRACTION
     # =========================
 
-    area = cv2.contourArea(
-        contour
+    feature_values = extract_features(
+
+        largest_contour
+
     )
-
-    perimeter = cv2.arcLength(
-        contour,
-        True
-    )
-
-    circularity = (
-        4 * np.pi * area
-    ) / (perimeter ** 2)
-
-    x, y, w, h = cv2.boundingRect(
-        contour
-    )
-
-    aspect_ratio = float(w) / h
-
-    hull = cv2.convexHull(
-        contour
-    )
-
-    hull_area = cv2.contourArea(
-        hull
-    )
-
-    solidity = float(area) / hull_area
-
-    equivalent_diameter = np.sqrt(
-        4 * area / np.pi
-    )
-
-    extent = float(area) / (w*h)
-
-    convex_area = hull_area
 
     # =========================
     # DATAFRAME
     # =========================
 
-    features = pd.DataFrame([[
-        
-        area,
+    features = pd.DataFrame([
 
-        perimeter,
+        feature_values
 
-        circularity,
-
-        aspect_ratio,
-
-        solidity,
-
-        equivalent_diameter,
-
-        extent,
-
-        convex_area
-
-    ]], columns=[
+    ], columns=[
 
         "area",
 
@@ -285,7 +325,17 @@ def predict():
 
         "extent",
 
-        "convex_area"
+        "convex_area",
+
+        "rectangularity",
+
+        "compactness",
+
+        "eccentricity",
+
+        "hu_moment_1",
+
+        "hu_moment_2"
 
     ])
 
@@ -294,7 +344,9 @@ def predict():
     # =========================
 
     features = scaler.transform(
+
         features
+
     )
 
     # =========================
@@ -302,29 +354,44 @@ def predict():
     # =========================
 
     prediction = model.predict(
+
         features
+
     )
 
+    # =========================
+    # PROBABILITY
+    # =========================
+
     probabilities = model.predict_proba(
+
         features
+
     )
 
     confidence = max(
+
         probabilities[0]
+
     ) * 100
 
-    return {
+    # =========================
+    # RESULT
+    # =========================
 
-        "prediction":
-        prediction[0],
+    return jsonify({
 
-        "confidence":
-        round(confidence,2),
+        "prediction": prediction[0],
 
-        "image":
-        file.filename
+        "confidence": round(
 
-    }
+            confidence,
+
+            2
+
+        )
+
+    })
 
 # =========================
 # RUN APP
@@ -333,5 +400,7 @@ def predict():
 if __name__ == "__main__":
 
     app.run(
+
         debug=True
+
     )
