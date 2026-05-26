@@ -1,5 +1,7 @@
 import pandas as pd
 import pickle
+import seaborn as sns
+import matplotlib.pyplot as plt
 
 from sklearn.model_selection import (
     train_test_split
@@ -46,7 +48,7 @@ X = df.drop(
 y = df["label"]
 
 # =========================
-# SPLIT
+# SPLIT DATASET
 # =========================
 
 X_train, X_test, y_train, y_test = train_test_split(
@@ -64,7 +66,7 @@ X_train, X_test, y_train, y_test = train_test_split(
 )
 
 # =========================
-# SCALING
+# SCALING FEATURE
 # =========================
 
 scaler = StandardScaler()
@@ -78,7 +80,7 @@ X_test = scaler.transform(
 )
 
 # =========================
-# MODEL
+# MODEL K-NN
 # =========================
 
 model = KNeighborsClassifier(
@@ -86,7 +88,7 @@ model = KNeighborsClassifier(
 )
 
 # =========================
-# TRAINING
+# TRAINING MODEL
 # =========================
 
 model.fit(
@@ -95,7 +97,7 @@ model.fit(
 )
 
 # =========================
-# PREDICT
+# PREDICTION
 # =========================
 
 y_pred = model.predict(
@@ -112,11 +114,11 @@ accuracy = accuracy_score(
 )
 
 print(
-    f"\nAccuracy : {accuracy*100:.2f}%"
+    f"\nAccuracy : {accuracy * 100:.2f}%"
 )
 
 # =========================
-# REPORT
+# CLASSIFICATION REPORT
 # =========================
 
 print(
@@ -124,26 +126,72 @@ print(
 )
 
 print(
+
     classification_report(
+
         y_test,
+
         y_pred
+
     )
+
 )
 
 # =========================
-# CONFUSION MATRIX
+# CONFUSION MATRIX ARRAY
 # =========================
+
+cm = confusion_matrix(
+
+    y_test,
+
+    y_pred
+
+)
 
 print(
     "\nConfusion Matrix:\n"
 )
 
-print(
-    confusion_matrix(
-        y_test,
-        y_pred
-    )
+print(cm)
+
+# =========================
+# VISUALIZATION
+# =========================
+
+plt.figure(figsize=(8,6))
+
+sns.heatmap(
+
+    cm,
+
+    annot=True,
+
+    fmt="d",
+
+    cmap="Blues",
+
+    xticklabels=model.classes_,
+
+    yticklabels=model.classes_
+
 )
+
+plt.title(
+    "Confusion Matrix Klasifikasi Biji Kopi"
+)
+
+plt.xlabel(
+    "Predicted Label"
+)
+
+plt.ylabel(
+    "Actual Label"
+)
+
+plt.tight_layout()
+
+plt.show()
 
 # =========================
 # SAVE MODEL

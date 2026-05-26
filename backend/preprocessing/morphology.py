@@ -5,7 +5,7 @@ image_path = "dataset/train/arabika/coffee1.jpg"
 
 image = cv2.imread(image_path)
 
-resize_image = cv2.resize(image, (64, 64))
+resize_image = cv2.resize(image, (512, 512))
 
 gray = cv2.cvtColor(
     resize_image,
@@ -29,6 +29,9 @@ closing = cv2.morphologyEx(
     kernel
 )
 
+cv2.imshow("Original Image", image)
+cv2.imshow("Grayscale Image", gray)
+cv2.imshow("Threshold Image", threshold)
 cv2.imshow("Morphology", closing)
 
 cv2.waitKey(0)
