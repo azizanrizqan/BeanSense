@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tailwind Config Test</title>
+    <style>
+        /* Test custom colors */
+        .test-primary { background-color: #6F4E37; }
+        .test-secondary { background-color: #A0826D; }
+        .test-caramel { background-color: #C68B59; }
+        .test-cream { background-color: #F5E6D3; }
+        .test-gold { background-color: #D4AF37; }
+        .test-dark { background-color: #3E2723; }
+        
+        .color-box {
+            width: 100px;
+            height: 100px;
+            margin: 10px;
+            display: inline-block;
+            border: 2px solid #333;
+            border-radius: 8px;
+        }
+        
+        .test-container {
+            padding: 20px;
+            font-family: 'Inter', sans-serif;
+        }
+        
+        .test-heading {
+            font-family: 'Poppins', sans-serif;
+            font-weight: 700;
+            font-size: 2rem;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="test-container">
+        <h1 class="test-heading">Tailwind Coffee Theme Configuration Test</h1>
+        
+        <h2>Color Palette:</h2>
+        <div>
+            <div class="color-box test-primary" title="Primary: #6F4E37"></div>
+            <div class="color-box test-secondary" title="Secondary: #A0826D"></div>
+            <div class="color-box test-caramel" title="Caramel: #C68B59"></div>
+            <div class="color-box test-cream" title="Cream: #F5E6D3"></div>
+            <div class="color-box test-gold" title="Gold: #D4AF37"></div>
+            <div class="color-box test-dark" title="Dark: #3E2723"></div>
+        </div>
+        
+        <h2>Font Families:</h2>
+        <p style="font-family: 'Poppins', sans-serif; font-size: 1.5rem; font-weight: 600;">
+            This is Poppins font (for headings)
+        </p>
+        <p style="font-family: 'Inter', sans-serif; font-size: 1rem;">
+            This is Inter font (for body text)
+        </p>
+        
+        <h2>Responsive Breakpoints:</h2>
+        <ul>
+            <li>sm: 640px</li>
+            <li>md: 768px</li>
+            <li>lg: 1024px</li>
+            <li>xl: 1280px</li>
+            <li>2xl: 1536px</li>
+        </ul>
+    </div>
+</body>
+</html>
