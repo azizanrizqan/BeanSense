@@ -1,0 +1,44 @@
+/* Glassmorphism Utility Classes for BeanSense Premium UI */
+
+/* 
+ * These utility classes provide reusable glassmorphism effects
+ * for the coffee-themed design system
+ */
+
+.glass-card {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+}
+
+.glass-card-hover {
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  background-color: rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  border-radius: 1rem;
+  box-shadow: 0 8px 32px 0 rgba(31, 38, 135, 0.15);
+  transition: all 0.3s ease;
+}
+
+.glass-card-hover:hover {
+  background-color: rgba(255, 255, 255, 0.15);
+  box-shadow: 0 12px 48px 0 rgba(31, 38, 135, 0.25);
+  transform: scale(1.05);
+}
+
+.glass-navbar {
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  background-color: rgba(255, 255, 255, 0.05);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.glass-overlay {
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  background-color: rgba(0, 0, 0, 0.3);
+}
