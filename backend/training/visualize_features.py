@@ -7,7 +7,7 @@ from sklearn.preprocessing import StandardScaler
 
 # Load dataset fitur
 df = pd.read_csv(
-    "backend/training/coffee_features.csv"
+    "training/coffee_features.csv"
 )
 
 # Pisahkan fitur dan label

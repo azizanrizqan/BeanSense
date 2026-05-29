@@ -2,7 +2,7 @@ import pandas as pd
 
 # Load dataset fitur
 df = pd.read_csv(
-    "backend/training/coffee_features.csv"
+    "training/coffee_features.csv"
 )
 
 # Tampilkan 5 data pertama

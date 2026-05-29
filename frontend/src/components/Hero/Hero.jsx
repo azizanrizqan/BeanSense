@@ -9,7 +9,7 @@ const Hero = ({ onStartClick, onCardClick }) => {
         <div className="lg:col-span-6 flex flex-col items-start text-left gap-6">
           <div className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full bg-coffee-medium/10 border border-coffee-medium/25 text-coffee-dark text-xs font-semibold uppercase tracking-wider">
             <Sparkles className="w-3.5 h-3.5 text-coffee-medium" />
-            Computer Vision + KNN Model
+            Image Processing + KNN Model
           </div>
 
           <div>

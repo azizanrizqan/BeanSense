@@ -7,7 +7,7 @@ image_path = "dataset/train/arabika/coffee1.jpg"
 image = cv2.imread(image_path)
 
 # Resize menjadi 32x32
-resize_image = cv2.resize(image, (32, 32))
+resize_image = cv2.resize(image, (256, 256))
 
 # Convert ke grayscale
 gray = cv2.cvtColor(

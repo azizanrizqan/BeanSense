@@ -4,7 +4,7 @@ image_path = "dataset/train/arabika/coffee1.jpg"
 
 image = cv2.imread(image_path)
 
-resize_image = cv2.resize(image, (64, 64))
+resize_image = cv2.resize(image, (256, 256))
 
 gray = cv2.cvtColor(
     resize_image,
