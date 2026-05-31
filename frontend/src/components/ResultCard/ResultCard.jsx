@@ -7,7 +7,6 @@ const ResultCard = ({ prediction, confidence }) => {
 
   const isArabica = prediction.toLowerCase().includes('arabika') || prediction.toLowerCase().includes('arabica');
   const isRobusta = prediction.toLowerCase().includes('robusta');
-  const isLiberica = prediction.toLowerCase().includes('liberika') || prediction.toLowerCase().includes('liberica');
 
   const beanDetails = isArabica
     ? {
@@ -27,16 +26,6 @@ const ResultCard = ({ prediction, confidence }) => {
           { name: 'Aspect Ratio', value: '1.05 - 1.20 (Bulat)' },
           { name: 'Crease Symmetry', value: 'Symmetric (Lurus)' },
           { name: 'Solidity Value', value: '0.91 - 0.93 (Medium)' }
-        ]
-      }
-    : isLiberica
-    ? {
-        description: 'Biji kopi Liberika dicirikan oleh bentuk fisik agak lonjong asimetris dengan ujung runcing pada salah satu sisi dan lipatan garis tengah tidak beraturan.',
-        metrics: [
-          { name: 'Circularity Index', value: '~0.68 (Asimetris)' },
-          { name: 'Aspect Ratio', value: '1.60 - 1.85 (Pointy)' },
-          { name: 'Crease Symmetry', value: 'Irregular (Khas)' },
-          { name: 'Solidity Value', value: '0.92 - 0.95 (Sangat Keras)' }
         ]
       }
     : {

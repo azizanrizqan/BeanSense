@@ -58,7 +58,7 @@ with open(
 # IMAGE PATH
 # =========================
 
-image_path = r"dataset/test/arabika/arabika1test.jpg"
+image_path = r"dataset/test/arabika/arabikatest.jpg"
 
 # =========================
 # READ IMAGE

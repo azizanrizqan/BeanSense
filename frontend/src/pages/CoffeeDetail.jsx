@@ -54,28 +54,6 @@ const CoffeeDetail = ({ beanType, onBack }) => {
           <circle cx="50" cy="48" r="4" fill="currentColor" />
         </svg>
       )
-    },
-    liberika: {
-      name: 'Liberika (Coffea Liberica)',
-      origin: 'Liberia, Afrika Barat',
-      elevation: '0 - 500 mdpl',
-      temp: '25°C - 35°C',
-      caffeine: '1.2% - 1.4%',
-      flavor: 'Unik, manis nangka (jackfruit), rasa rempah/smoky, aroma buah matang.',
-      desc: 'Liberika memiliki ukuran pohon yang sangat besar hingga mencapai 20 meter dan toleran terhadap tanah masam atau lahan gambut. Biji kopi ini langka dan memiliki pangsa pasar khusus karena aromanya yang menyerupai buah nangka matang.',
-      shape: 'Bentuk biji asimetris, lonjong memanjang dengan salah satu ujung runcing (tear-shaped) dan ukuran fisik lebih besar.',
-      metrics: [
-        { name: 'Circularity Index', value: '0.65 - 0.72 (Sangat Lonjong)' },
-        { name: 'Aspect Ratio (L/W)', value: '1.60 - 1.85 (Sangat Panjang)' },
-        { name: 'Solidity', value: '0.92 - 0.95 (Kepadatan Tinggi)' },
-        { name: 'Crease Curve', value: 'Tidak Beraturan / Irregular' }
-      ],
-      svg: (
-        <svg className="w-48 h-48 stroke-[1.2] text-coffee-dark" viewBox="0 0 100 100" fill="none" stroke="currentColor">
-          <path d="M22 50 C22 18, 78 28, 78 50 C78 72, 22 82, 22 50 Z" />
-          <path d="M48 20 C42 35, 58 50, 42 65 C48 72, 52 80, 52 80" />
-        </svg>
-      )
     }
   };
 

@@ -190,8 +190,8 @@ plt.ylabel(
 )
 
 plt.tight_layout()
-
-plt.show()
+plt.savefig("backend/training/confusion_matrix.png")
+plt.close()
 
 # =========================
 # SAVE MODEL

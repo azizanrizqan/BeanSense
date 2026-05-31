@@ -24,9 +24,8 @@ const Footer = () => {
           <p>© {new Date().getFullYear()} BeanSense AI. All rights reserved.</p>
           <span className="hidden sm:inline text-coffee-dark/20">|</span>
           <div className="flex items-center gap-1">
-            <span>Crafted with</span>
-            <Heart className="w-3 h-3 text-rose-600 fill-rose-600 animate-pulse" />
-            <span>for Coffee Intelligence</span>
+            <span>RGB Crafted for</span>
+            <span>IMAGE PROCESSING</span>
           </div>
         </div>
 
